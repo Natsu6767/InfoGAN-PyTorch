@@ -29,9 +29,10 @@ def noise_sampler(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
     z = torch.randn(batch_size, n_z, 1, 1, device=device)
 
     dis_c = torch.zeros(batch_size, n_dis_c, dis_c_dim, device=device)
-    idx = np.zeros((n_dis_c, batch_size))
+    idx = torch.zeros(n_dis_c, batch_size, device=device)
+    
     for i in range(n_dis_c):
-        idx[i] = np.random.randint(dis_c_dim, size=batch_size)
+        idx[i] = torch.randint(low=0, high=dis_c_dim, size=(batch_size))
         c[torch.arange(0, batch_size), i, idx[i]] = 1.0
 
     dis_c.squeeze_()
