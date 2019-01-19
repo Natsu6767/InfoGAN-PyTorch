@@ -113,7 +113,7 @@ D_losses = []
 
 print("-"*25)
 print("Starting Training Loop...\n")
-#print('Epochs: %d\nBatch Size: %d\nLength of Data Loader: %d' % (params['epoch_num'], params['batch_size'], len(train_loader)))
+print('Epochs: %d\nBatch Size: %d\nLength of Data Loader: %d' % (params['num_epochs'], params['batch_size'], len(dataloader)))
 print("-"*25)
 
 start_time = time.time()
@@ -200,6 +200,7 @@ for epoch in range(params['num_epochs']):
         plt.title("Epoch_{}".format(epoch+1))
         plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
         plt.savefig("Epoch_{}".format(epoch+1))
+        plt.close('all')
 
     if (epoch+1) % params['save_epoch'] == 0:
         torch.save({

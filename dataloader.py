@@ -42,7 +42,7 @@ def get_data(dataset, batch_size):
             transforms.Normalize((0.5, 0.5, 0.5),
                 (0.5, 0.5, 0.5))])
 
-        dataset = dsets.ImageFolder(root=root, transform=transform)
+        dataset = dsets.ImageFolder(root=root+'celeba/', transform=transform)
 
     dataloader = torch.utils.data.DataLoader(dataset, 
                                             batch_size=batch_size, 
