@@ -18,9 +18,9 @@ class Generator(nn.Module):
         self.tconv4 = nn.ConvTranspose2d(64, 1, 4, 2, padding=1, bias=False)
 
     def forward(self, x):
-        x = torch.relu(self.bn1(self.tconv1(x)))
-        x = torch.relu(self.bn2(self.tconv2(x)))
-        x = torch.relu(self.bn3(self.tconv3(x)))
+        x = F.relu(self.bn1(self.tconv1(x)))
+        x = F.relu(self.bn2(self.tconv2(x)))
+        x = F.relu(self.bn3(self.tconv3(x)))
 
         img = torch.sigmoid(self.tconv4(x))
 
