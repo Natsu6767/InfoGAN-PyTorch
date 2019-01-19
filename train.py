@@ -34,18 +34,22 @@ print(device, " will be used.\n")
 dataloader = get_data(params['dataset'], params['batch_size'])
 
 if(params['dataset'] == 'MNIST'):
+    params['num_z'] = 62
     params['num_dis_c'] = 1
     params['dis_c_dim'] = 10
     params['num_con_c'] = 2
 elif(params['dataset'] == 'SVHN'):
+    params['num_z'] = 124
     params['num_dis_c'] = 4
     params['dis_c_dim'] = 10
     params['num_con_c'] = 4
 elif(params['dataset'] == 'CelebA'):
+    params['num_z'] = 128
     params['num_dis_c'] = 10
     params['dis_c_dim'] = 10
     params['num_con_c'] = 0
 elif(params['dataset'] == 'FashionMNIST'):
+    params['num_z'] = 62
     params['num_dis_c'] = 1
     params['dis_c_dim'] = 10
     params['num_con_c'] = 2
@@ -84,15 +88,21 @@ optimD = optim.Adam([{'params': discriminator.parameters()}, {'params': netD.par
 optimG = optim.Adam([{'params': netG.parameters()}, {'params': netQ.parameters()}], lr=params['learning_rate'], betas=(params['beta1'], params['beta2']))
 
 # Fixed Noise
-z = torch.randn(100, 62, 1, 1, device=device)
+z = torch.randn(100, params['num_z'], 1, 1, device=device)
+fixed_noise = z
+if(params['num_dis_c'] != 0):
+    idx = np.arange(params['dis_c_dim']).repeat(10)
+    dis_c = torch.zeros(100, params['num_dis_c'], params['dis_c_dim'], device=device)
+    for i in range(params['num_dis_c']):
+        dis_c[torch.arange(0, 100), i, idx] = 1.0
 
-idx = np.arange(10).repeat(10)
-dis_c = torch.zeros(100, 10, 1, 1, device=device)
-dis_c[torch.arange(0, 100), idx] = 1
+    dis_c = dis_c.view(100, -1, 1, 1)
 
-con_c = torch.rand(100, 2, 1, 1, device=device) * 2 - 1
+    fixed_noise = torch.cat((fixed_noise, dis_c), dim=1)
 
-fixed_noise = torch.cat((z, dis_c, con_c), dim=1)
+if(params['num_con_c'] != 0):
+    con_c = torch.rand(100, params['num_con_c'], 1, 1, device=device) * 2 - 1
+    fixed_noise = torch.cat((fixed_noise, con_c), dim=1)
 
 real_label = 1
 fake_label = 0
@@ -127,7 +137,7 @@ for epoch in range(params['num_epochs']):
 
         # Fake Data
         label.fill_(fake_label)
-        noise, idx = noise_sample(1, 10, 2, 62, b_size, device)
+        noise, idx = noise_sample(params['num_dis_c'], params['dis_c_dim'], params['num_con_c'], params['num_z'], b_size, device)
         fake_data = netG(noise)
         output2 = discriminator(fake_data.detach())
         probs_fake = netD(output2).view(-1)
@@ -150,12 +160,12 @@ for epoch in range(params['num_epochs']):
         q_logits, q_mu, q_var = netQ(output)
         target = torch.LongTensor(idx).to(device)
         dis_loss = 0
-        for j in range(1):
+        for j in range(params['num_dis_c']):
             dis_loss += criterionQ_dis(q_logits[:, j*10 : j*10 + 10], target[j])
 
         con_loss = 0
-        if (True):
-            con_loss = criterionQ_con(con_c, q_mu, q_var)*0.1
+        if (params['num_con_c'] != 0):
+            con_loss = criterionQ_con(noise[:, params['num_z']+ params['num_dis_c']*params['dis_c_dim'] : ].view(-1, params['num_con_c']), q_mu, q_var)
 
         G_loss = gen_loss + dis_loss + con_loss
         G_loss.backward()
@@ -165,7 +175,7 @@ for epoch in range(params['num_epochs']):
         # Check progress of training.
         if i != 0 and i%100 == 0:
             print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f'
-                  % (epoch+1, epochs, i, len(dataloader), 
+                  % (epoch+1, params['num_epochs'], i, len(dataloader), 
                     D_loss.item(), G_loss.item()))
 
         # Save the losses for plotting.
@@ -173,7 +183,7 @@ for epoch in range(params['num_epochs']):
         D_losses.append(D_loss.item())
 
         # Check how the generator is doing by saving G's output on a fixed noise.
-        if (iters % 100 == 0) or ((epoch == epochs-1) and (i == len(dataloader)-1)):
+        if (iters % 100 == 0) or ((epoch == params['num_epochs']-1) and (i == len(dataloader)-1)):
             with torch.no_grad():
                 gen_data = netG(fixed_noise).detach().cpu()
             img_list.append(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True))
@@ -182,6 +192,14 @@ for epoch in range(params['num_epochs']):
 
     epoch_time = time.time() - epoch_start_time
     print("Time taken for Epoch %d: %.2fs" %(epoch + 1, epoch_time))
+
+    if((epoch+1) == 1 or (epoch+1) == params['num_epochs']/2):
+        with torch.no_grad():
+            gen_data = netG(fixed_noise).detach().cpu()
+        plt.axis("off")
+        plt.title("Epoch_{}".format(epoch+1))
+        plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
+        plt.savefig("Epoch_{}".format(epoch+1))
 
     if (epoch+1) % params['save_epoch'] == 0:
         torch.save({
@@ -198,6 +216,13 @@ training_time = time.time() - start_time
 print("-"*50)
 print('Training finished!\nTotal Time for Training: %.2fm' %(training_time / 60))
 print("-"*50)
+
+with torch.no_grad():
+    gen_data = netG(fixed_noise).detach().cpu()
+plt.axis("off")
+plt.title("Epoch_{}".format(params['num_epochs']))
+plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
+plt.savefig("Epoch_{}".format(params['num_epochs']))
 
 torch.save({
     'netG' : netG.state_dict(),
@@ -218,12 +243,12 @@ plt.plot(D_losses,label="D")
 plt.xlabel("iterations")
 plt.ylabel("Loss")
 plt.legend()
-plt.show()
+plt.savefig("Loss Curve {}".format(params['dataset']))
 
 # Animation showing the improvements of the generator.
 fig = plt.figure(figsize=(10,10))
 plt.axis("off")
 ims = [[plt.imshow(np.transpose(i,(1,2,0)), animated=True)] for i in img_list]
 anim = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
-plt.show()
 anim.save('infoGAN.gif', dpi=80, writer='imagemagick')
+plt.show()

@@ -36,10 +36,6 @@ def noise_sample(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
             idx[i] = np.random.randint(dis_c_dim, size=batch_size)
             dis_c[torch.arange(0, batch_size), i, idx[i]] = 1.0
 
-        dis_c.squeeze_()
-        if batch_size == 1:
-            dis_c.unsqueeze_(0)
-
         dis_c = dis_c.view(batch_size, -1, 1, 1)
 
     if(n_con_c != 0):

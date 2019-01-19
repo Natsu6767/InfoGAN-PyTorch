@@ -7,10 +7,10 @@ class Generator(nn.Module):
         super().__init__()
 
         self.tconv1 = nn.ConvTranspose2d(228, 448, 2, 1, bias=False)
-        self.bn1 = nn.BatchNorm2d(1024)
+        self.bn1 = nn.BatchNorm2d(448)
 
-        self.tconv2 = nn.ConvTranspose2d(448, 256, 4, 2, pdding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(128)
+        self.tconv2 = nn.ConvTranspose2d(448, 256, 4, 2, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(256)
 
         self.tconv3 = nn.ConvTranspose2d(256, 128, 4, 2, padding=1, bias=False)
 
@@ -51,7 +51,7 @@ class DHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv = nn.Conv2d(256, 1, 1)
+        self.conv = nn.Conv2d(256, 1, 4)
 
     def forward(self, x):
         output = torch.sigmoid(self.conv(x))
@@ -62,7 +62,7 @@ class QHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(256, 128, 1, bias=False)
+        self.conv1 = nn.Conv2d(256, 128, 4, bias=False)
         self.bn1 = nn.BatchNorm2d(128)
 
         self.conv_disc = nn.Conv2d(128, 100, 1)
