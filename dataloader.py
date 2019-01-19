@@ -13,7 +13,7 @@ def get_data(dataset, batch_size):
             transforms.CenterCrop(28),
             transforms.ToTensor()])
 
-        dataset = dsets.MNIST(root, train='train', 
+        dataset = dsets.MNIST(root+'mnist/', train='train', 
                                 download=True, transform=transform)
 
     elif dataset == 'SVHN':
@@ -22,7 +22,7 @@ def get_data(dataset, batch_size):
             transforms.CenterCrop(32),
             transforms.ToTensor()])
 
-        dataset = dsets.SVHN(root, split='train', 
+        dataset = dsets.SVHN(root+'svhn/', split='train', 
                                 download=True, transform=transform)
 
     elif dataset == 'FashionMNIST':
@@ -31,7 +31,7 @@ def get_data(dataset, batch_size):
             transforms.CenterCrop(28),
             transforms.ToTensor()])
 
-        dataset = dsets.FashionMNIST(root, train='train', 
+        dataset = dsets.FashionMNIST(root+'fashionmnist/', train='train', 
                                 download=True, transform=transform)
 
     elif dataset == 'CelebA':

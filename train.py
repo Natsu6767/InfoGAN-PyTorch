@@ -113,7 +113,7 @@ D_losses = []
 
 print("-"*25)
 print("Starting Training Loop...\n")
-print('Epochs: %d\nBatch Size: %d\nLength of Data Loader: %d' % (params['num_epochs'], params['batch_size'], len(dataloader)))
+print('Epochs: %d\nDataset: {}\nBatch Size: %d\nLength of Data Loader: %d'.format(params['dataset']) % (params['num_epochs'], params['batch_size'], len(dataloader)))
 print("-"*25)
 
 start_time = time.time()
@@ -250,5 +250,5 @@ fig = plt.figure(figsize=(10,10))
 plt.axis("off")
 ims = [[plt.imshow(np.transpose(i,(1,2,0)), animated=True)] for i in img_list]
 anim = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
-anim.save('infoGAN_{}.gif'.format(params[;dataset]), dpi=80, writer='imagemagick')
+anim.save('infoGAN_{}.gif'.format(params['dataset']), dpi=80, writer='imagemagick')
 plt.show()
