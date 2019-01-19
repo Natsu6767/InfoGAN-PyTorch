@@ -197,9 +197,8 @@ for epoch in range(params['num_epochs']):
         with torch.no_grad():
             gen_data = netG(fixed_noise).detach().cpu()
         plt.axis("off")
-        plt.title("Epoch_{}".format(epoch+1))
         plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
-        plt.savefig("Epoch_{}".format(epoch+1))
+        plt.savefig("Epoch_%d {}".format(params['dataset']) %(epoch+1))
         plt.close('all')
 
     if (epoch+1) % params['save_epoch'] == 0:
@@ -251,5 +250,5 @@ fig = plt.figure(figsize=(10,10))
 plt.axis("off")
 ims = [[plt.imshow(np.transpose(i,(1,2,0)), animated=True)] for i in img_list]
 anim = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
-anim.save('infoGAN.gif', dpi=80, writer='imagemagick')
+anim.save('infoGAN_{}.gif'.format(params[;dataset]), dpi=80, writer='imagemagick')
 plt.show()
