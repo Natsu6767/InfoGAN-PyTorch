@@ -6,16 +6,16 @@ class Generator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.tconv1 = nn.ConvTransposed2d(74, 1024, 1, 1, bias=False)
+        self.tconv1 = nn.ConvTranspose2d(74, 1024, 1, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(1024)
 
-        self.tconv2 = nn.ConvTransposed2d(1024, 128, 7, 1, bias=False)
+        self.tconv2 = nn.ConvTranspose2d(1024, 128, 7, 1, bias=False)
         self.bn2 = nn.BatchNorm2d(128)
 
-        self.tconv3 = nn.ConvTransposed2d(128, 64, 4, 2, padding=1, bias=False)
+        self.tconv3 = nn.ConvTranspose2d(128, 64, 4, 2, padding=1, bias=False)
         self.bn3 = nn.BatchNorm2d(64)
 
-        self.tconv4 = nn.BatchNorm2d(64, 1, 4, 2, 1, padding=1, bias=False)
+        self.tconv4 = nn.ConvTranspose2d(64, 1, 4, 2, padding=1, bias=False)
 
     def forward(self, x):
         x = torch.relu(self.bn1(self.tconv1(x)))
@@ -47,7 +47,7 @@ class Discriminator(nn.Module):
 
 class DHead(nn.Module):
     def __init__(self):
-        super()__init__()
+        super().__init__()
 
         self.conv = nn.Conv2d(1024, 1, 1)
 

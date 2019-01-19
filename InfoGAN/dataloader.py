@@ -1,6 +1,6 @@
 import torch
 import torchvision.transforms as transforms
-import torchvision.datasets as dset
+import torchvision.datasets as dsets
 
 # Directory containing the data.
 root = '.../data/'
@@ -25,7 +25,7 @@ def get_data(dataset, batch_size):
         dataset = dsets.SVHN(root, split='train', 
                                 download=True, transform=transform)
 
-    elif dataset = 'FashionMNIST':
+    elif dataset == 'FashionMNIST':
         transform = transforms.Compose([
             transforms.Resize(28),
             transforms.CenterCrop(28),
@@ -34,7 +34,7 @@ def get_data(dataset, batch_size):
         dataset = dsets.FashionMNIST(root, train='train', 
                                 download=True, transform=transform)
 
-    elif dataset = 'CelebA':
+    elif dataset == 'CelebA':
         transform = transforms.Compose([
             transforms.Resize(32),
             transforms.CenterCrop(32),

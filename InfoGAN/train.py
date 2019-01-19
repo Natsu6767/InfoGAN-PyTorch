@@ -18,8 +18,8 @@ random.seed(seed)
 torch.manual_seed(seed)
 print("Random Seed: ", seed)
 
-batch_size = 100
-epochs = 10
+batch_size = 128
+epochs = 5
 
 device = torch.device("cuda:0" if(torch.cuda.is_available()) else "cpu")
 print(device, " will be used.\n")
@@ -32,7 +32,7 @@ plt.figure(figsize=(8, 8))
 plt.axis("off")
 plt.title("Training Images")
 plt.imshow(np.transpose(vutils.make_grid(
-    sample_batch[0].to(device)[ : 100], padding=2, normalize=True).cpu(), (1, 2, 0)))
+    sample_batch[0].to(device)[ : 100], nrow=10, padding=2, normalize=True).cpu(), (1, 2, 0)))
 
 plt.show()
 
@@ -64,9 +64,9 @@ z = torch.randn(100, 62, 1, 1, device=device)
 
 idx = np.arange(10).repeat(10)
 dis_c = torch.zeros(100, 10, 1, 1, device=device)
-dis_c[torch,arange(0, 100), idx] = 1
+dis_c[torch.arange(0, 100), idx] = 1
 
-con_c = torch.Tensor(100, 2, 1, 1, device=device).uniform(-1, 1)
+con_c = torch.rand(100, 2, 1, 1, device=device) * 2 - 1
 
 fixed_noise = torch.cat((z, dis_c, con_c), dim=1)
 
@@ -98,16 +98,16 @@ for epoch in range(epochs):
         optimD.zero_grad()
         label = torch.full((b_size, ), real_label, device=device)
         output1 = discriminator(real_data)
-        probs_real = netD(output1)
+        probs_real = netD(output1).view(-1)
         loss_real = criterionD(probs_real, label)
         loss_real.backward()
 
         # Fake Data
         label.fill_(fake_label)
-        noise, idx = noise_sample(1, 10, 2, 62, batch_size, device)
+        noise, idx = noise_sample(1, 10, 2, 62, b_size, device)
         fake_data = netG(noise)
-        output2 = discriminator(fake_data)
-        probs_fake = netD(output2)
+        output2 = discriminator(fake_data.detach())
+        probs_fake = netD(output2).view(-1)
         loss_fake = criterionD(probs_fake, label)
         loss_fake.backward()
 
@@ -121,14 +121,14 @@ for epoch in range(epochs):
 
         output = discriminator(fake_data)
         label.fill_(real_label)
-        probs_fake = netD(output)
+        probs_fake = netD(output).view(-1)
         gen_loss = criterionD(probs_fake, label)
 
         q_logits, q_mu, q_var = netQ(output)
-        target = idx
+        target = torch.LongTensor(idx).to(device)
         dis_loss = 0
-        for i in range(1):
-            dis_loss += criterionQ_dis(q_logits[:, i*10 + i*10 + 10], target[i])
+        for j in range(1):
+            dis_loss += criterionQ_dis(q_logits[:, j*10 : j*10 + 10], target[j])
 
         con_loss = criterionQ_con(con_c, q_mu, q_var)*0.1
 
@@ -151,11 +151,11 @@ for epoch in range(epochs):
         if (iters % 100 == 0) or ((epoch == epochs-1) and (i == len(dataloader)-1)):
             with torch.no_grad():
                 gen_data = netG(fixed_noise).detach().cpu()
-            img_list.append(vutils.make_grid(gen_data, padding=2, normalize=True))
+            img_list.append(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True))
 
         iters += 1
 
-    epoch_time = time.time() = epoch_start_time
+    epoch_time = time.time() - epoch_start_time
     print("Time taken for Epoch %d: %.2fs" %(epoch + 1, epoch_time))
 
 training_time = time.time() - start_time
