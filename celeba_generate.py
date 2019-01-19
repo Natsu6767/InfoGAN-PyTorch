@@ -9,8 +9,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-load_path', required=True, help='Checkpoint to load path from')
 args = parser.parse_args()
 
-import sys
-sys.path.append('/home/mohit/DeepLearning/InfoGAN/')
 from models.celeba_model import Generator
 
 def mix(c, i, m, n):
