@@ -8,9 +8,19 @@ import matplotlib.animation as animation
 import time
 import random
 
-from mnist_model import Generator, Discriminator, DHead, QHead
+from models.mnist_model import Generator, Discriminator, DHead, QHead
 from dataloader import get_data
 from utils import *
+from config import params
+
+if(params['dataset'] == 'MNIST'):
+    from models.mnist_model import Generator, Discriminator, DHead, QHead
+elif(params['dataset'] == 'SVHN'):
+    from models.svhn_model import Generator, Discriminator, DHead, QHead
+elif(params['dataset'] == 'CelebA'):
+    from models.celeba_model import Generator, Discriminator, DHead, QHead
+elif(params['dataset'] == 'FashionMNIST'):
+    from models.mnist_model import Generator, Discriminator, DHead, QHead
 
 # Set random seed for reproducibility.
 seed = 1123
@@ -18,13 +28,27 @@ random.seed(seed)
 torch.manual_seed(seed)
 print("Random Seed: ", seed)
 
-batch_size = 128
-epochs = 5
-
 device = torch.device("cuda:0" if(torch.cuda.is_available()) else "cpu")
 print(device, " will be used.\n")
 
-dataloader = get_data('MNIST', batch_size)
+dataloader = get_data(params['dataset'], params['batch_size'])
+
+if(params['dataset'] == 'MNIST'):
+    params['num_dis_c'] = 1
+    params['dis_c_dim'] = 10
+    params['num_con_c'] = 2
+elif(params['dataset'] == 'SVHN'):
+    params['num_dis_c'] = 4
+    params['dis_c_dim'] = 10
+    params['num_con_c'] = 4
+elif(params['dataset'] == 'CelebA'):
+    params['num_dis_c'] = 10
+    params['dis_c_dim'] = 10
+    params['num_con_c'] = 0
+elif(params['dataset'] == 'FashionMNIST'):
+    params['num_dis_c'] = 1
+    params['dis_c_dim'] = 10
+    params['num_con_c'] = 2
 
 # Plot the training images.
 sample_batch = next(iter(dataloader))
@@ -56,8 +80,8 @@ criterionD = nn.BCELoss()
 criterionQ_dis = nn.CrossEntropyLoss()
 criterionQ_con = NormalNLLLoss()
 
-optimD = optim.Adam([{'params': discriminator.parameters()}, {'params': netD.parameters()}], lr=0.0002, betas=(0.5, 0.999))
-optimG = optim.Adam([{'params': netG.parameters()}, {'params': netQ.parameters()}], lr=0.0002, betas=(0.5, 0.999))
+optimD = optim.Adam([{'params': discriminator.parameters()}, {'params': netD.parameters()}], lr=params['learning_rate'], betas=(params['beta1'], params['beta2']))
+optimG = optim.Adam([{'params': netG.parameters()}, {'params': netQ.parameters()}], lr=params['learning_rate'], betas=(params['beta1'], params['beta2']))
 
 # Fixed Noise
 z = torch.randn(100, 62, 1, 1, device=device)
@@ -69,7 +93,6 @@ dis_c[torch.arange(0, 100), idx] = 1
 con_c = torch.rand(100, 2, 1, 1, device=device) * 2 - 1
 
 fixed_noise = torch.cat((z, dis_c, con_c), dim=1)
-
 
 real_label = 1
 fake_label = 0
@@ -86,7 +109,7 @@ print("-"*25)
 start_time = time.time()
 iters = 0
 
-for epoch in range(epochs):
+for epoch in range(params['num_epochs']):
     epoch_start_time = time.time()
 
     for i, (data, _) in enumerate(dataloader, 0):
@@ -160,10 +183,31 @@ for epoch in range(epochs):
     epoch_time = time.time() - epoch_start_time
     print("Time taken for Epoch %d: %.2fs" %(epoch + 1, epoch_time))
 
+    if (epoch+1) % params['save_epoch'] == 0:
+        torch.save({
+            'netG' : netG.state_dict(),
+            'discriminator' : discriminator.state_dict(),
+            'netD' : netD.state_dict(),
+            'netQ' : netQ.state_dict(),
+            'optimD' : optimD.state_dict(),
+            'optimG' : optimG.state_dict(),
+            'params' : params
+            }, 'checkpoint/model_epoch_%d_{}'.format(params['dataset']) %(epoch+1))
+
 training_time = time.time() - start_time
 print("-"*50)
 print('Training finished!\nTotal Time for Training: %.2fm' %(training_time / 60))
 print("-"*50)
+
+torch.save({
+    'netG' : netG.state_dict(),
+    'discriminator' : discriminator.state_dict(),
+    'netD' : netD.state_dict(),
+    'netQ' : netQ.state_dict(),
+    'optimD' : optimD.state_dict(),
+    'optimG' : optimG.state_dict(),
+    'params' : params
+    }, 'checkpoint/model_final_{}'.format(params['dataset']))
 
 
 # Plot the training losses.
