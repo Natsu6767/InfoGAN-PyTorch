@@ -130,7 +130,9 @@ for epoch in range(epochs):
         for j in range(1):
             dis_loss += criterionQ_dis(q_logits[:, j*10 : j*10 + 10], target[j])
 
-        con_loss = criterionQ_con(con_c, q_mu, q_var)*0.1
+        con_loss = 0
+        if (True):
+            con_loss = criterionQ_con(con_c, q_mu, q_var)*0.1
 
         G_loss = gen_loss + dis_loss + con_loss
         G_loss.backward()

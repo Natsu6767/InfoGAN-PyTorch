@@ -28,21 +28,27 @@ def noise_sample(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
 
     z = torch.randn(batch_size, n_z, 1, 1, device=device)
 
-    dis_c = torch.zeros(batch_size, n_dis_c, dis_c_dim, device=device)
     idx = np.zeros((n_dis_c, batch_size))
-    
-    for i in range(n_dis_c):
-        idx[i] = np.random.randint(dis_c_dim, size=batch_size)
-        dis_c[torch.arange(0, batch_size), i, idx[i]] = 1.0
+    if(n_dis_c != 0):
+        dis_c = torch.zeros(batch_size, n_dis_c, dis_c_dim, device=device)
+        
+        for i in range(n_dis_c):
+            idx[i] = np.random.randint(dis_c_dim, size=batch_size)
+            dis_c[torch.arange(0, batch_size), i, idx[i]] = 1.0
 
-    dis_c.squeeze_()
-    if batch_size == 1:
-        dis_c.unsqueeze_(0)
+        dis_c.squeeze_()
+        if batch_size == 1:
+            dis_c.unsqueeze_(0)
 
-    dis_c = dis_c.view(batch_size, -1, 1, 1)
+        dis_c = dis_c.view(batch_size, -1, 1, 1)
 
-    con_c = torch.rand(batch_size, n_con_c, 1, 1, device=device) * 2 - 1
+    if(n_con_c != 0):
+        con_c = torch.rand(batch_size, n_con_c, 1, 1, device=device) * 2 - 1
 
-    noise = torch.cat((z, dis_c, con_c), dim=1)
+    noise = z
+    if(n_dis_c != 0):
+        noise = torch.cat((z, dis_c), dim=1)
+    if(n_con_c != 0):
+        noise = torch.cat((noise, con_c), dim=1)
 
     return noise, idx
