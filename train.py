@@ -58,12 +58,10 @@ elif(params['dataset'] == 'FashionMNIST'):
 sample_batch = next(iter(dataloader))
 plt.figure(figsize=(8, 8))
 plt.axis("off")
-plt.title("Training Images")
 plt.imshow(np.transpose(vutils.make_grid(
     sample_batch[0].to(device)[ : 100], nrow=10, padding=2, normalize=True).cpu(), (1, 2, 0)))
-
-plt.show()
-
+plt.savefig('Training Images {}'.format(params['dataset']))
+plt.close('all')
 netG = Generator().to(device)
 netG.apply(weights_init)
 print(netG)
@@ -165,7 +163,7 @@ for epoch in range(params['num_epochs']):
 
         con_loss = 0
         if (params['num_con_c'] != 0):
-            con_loss = criterionQ_con(noise[:, params['num_z']+ params['num_dis_c']*params['dis_c_dim'] : ].view(-1, params['num_con_c']), q_mu, q_var)
+            con_loss = criterionQ_con(noise[:, params['num_z']+ params['num_dis_c']*params['dis_c_dim'] : ].view(-1, params['num_con_c']), q_mu, q_var)*0.1
 
         G_loss = gen_loss + dis_loss + con_loss
         G_loss.backward()
@@ -182,16 +180,13 @@ for epoch in range(params['num_epochs']):
         G_losses.append(G_loss.item())
         D_losses.append(D_loss.item())
 
-        # Check how the generator is doing by saving G's output on a fixed noise.
-        if (iters % 100 == 0) or ((epoch == params['num_epochs']-1) and (i == len(dataloader)-1)):
-            with torch.no_grad():
-                gen_data = netG(fixed_noise).detach().cpu()
-            img_list.append(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True))
-
         iters += 1
 
     epoch_time = time.time() - epoch_start_time
     print("Time taken for Epoch %d: %.2fs" %(epoch + 1, epoch_time))
+    with torch.no_grad():
+        gen_data = netG(fixed_noise).detach().cpu()
+    img_list.append(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True))
 
     if((epoch+1) == 1 or (epoch+1) == params['num_epochs']/2):
         with torch.no_grad():
