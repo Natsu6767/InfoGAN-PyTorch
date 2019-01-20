@@ -56,7 +56,7 @@ elif(params['dataset'] == 'FashionMNIST'):
 
 # Plot the training images.
 sample_batch = next(iter(dataloader))
-plt.figure(figsize=(8, 8))
+plt.figure(figsize=(10, 10))
 plt.axis("off")
 plt.imshow(np.transpose(vutils.make_grid(
     sample_batch[0].to(device)[ : 100], nrow=10, padding=2, normalize=True).cpu(), (1, 2, 0)))
@@ -191,6 +191,7 @@ for epoch in range(params['num_epochs']):
     if((epoch+1) == 1 or (epoch+1) == params['num_epochs']/2):
         with torch.no_grad():
             gen_data = netG(fixed_noise).detach().cpu()
+        plt.figure(figsize=(10, 10))
         plt.axis("off")
         plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
         plt.savefig("Epoch_%d {}".format(params['dataset']) %(epoch+1))
@@ -214,10 +215,10 @@ print("-"*50)
 
 with torch.no_grad():
     gen_data = netG(fixed_noise).detach().cpu()
+plt.figure(figsize=(10, 10))
 plt.axis("off")
-plt.title("Epoch_{}".format(params['num_epochs']))
 plt.imshow(np.transpose(vutils.make_grid(gen_data, nrow=10, padding=2, normalize=True), (1,2,0)))
-plt.savefig("Epoch_{}".format(params['num_epochs']))
+plt.savefig("Epoch_%d_{}".format(params['dataset']) %(params['num_epochs']))
 
 torch.save({
     'netG' : netG.state_dict(),

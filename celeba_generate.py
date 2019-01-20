@@ -11,15 +11,19 @@ args = parser.parse_args()
 
 from models.celeba_model import Generator
 
-def mix(c, i, m, n):
+def mix(i, m, n):
 
-    c[torch.arange(0, 100), m-1, 0] = 0.0
-    c[torch.arange(0, 100), m-1, i[0]] = 1.0
+    c = torch.zeros(50, 10, 10, device=device)
+    for j in range(10):
+        c[torch.arange(0, 50), j, i[0]] = 1.0
 
-    c[torch.arange(0, 100), n-1, 0] = 0.0
-    c[torch.arange(0, 100), n-1, i[1]] = 1.0
+    c[torch.arange(0, 50), m-1] = 0.0
+    c[torch.arange(0, 50), m-1, i[1]] = 1.0
 
-    return c.view(100, -1, 1, 1)
+    c[torch.arange(0, 50), n-1] = 0.0
+    c[torch.arange(0, 50), n-1, i[1]] = 1.0
+
+    return c.view(50, -1, 1, 1)
 
 # Load the checkpoint file
 state_dict = torch.load(args.load_path)
@@ -33,52 +37,29 @@ params = state_dict['params']
 netG = Generator().to(device)
 # Load the trained generator weights.
 netG.load_state_dict(state_dict['netG'])
-print(netG)
 
-idx = np.zeros((2, 100))
-idx[0] = np.arange(10).repeat(10)
-idx[1] = np.tile(np.arange(10), 10)
 
-dis_c = torch.zeros(100, 10, 10, device=device)
-for i in range(10):
-    dis_c[torch.arange(0, 100), i, 0] = 1.0
+idx = np.zeros((2, 50))
+idx[0] = np.array([1, 2, 5, 7, 9]).repeat(10)
+idx[1] = np.tile(np.arange(10), 5)
 
-c1c2 = mix(dis_c, idx, 1, 2)
-c2c3 = mix(dis_c, idx, 2, 3)
-c5c6 = mix(dis_c, idx, 5, 6)
-c9c10 = mix(dis_c, idx, 9, 10)
 
-z = torch.randn(100, 128, 1, 1, device=device)
 
-noise1 = torch.cat((z, c1c2), dim=1)
-noise2 = torch.cat((z, c2c3), dim=1)
-noise3 = torch.cat((z, c5c6), dim=1)
-noise4 = torch.cat((z, c9c10), dim=1)
+z = torch.randn(50, 128, 1, 1, device=device)
 
-with torch.no_grad():
-    generated_img1 = netG(noise1).detach().cpu()
-# Display the generated image.
-plt.axis("off")
-plt.imshow(np.transpose(vutils.make_grid(generated_img1, nrow=10, padding=2, normalize=True), (1,2,0)))
-plt.show()
 
-with torch.no_grad():
-    generated_img2 = netG(noise2).detach().cpu()
-# Display the generated image.
-plt.axis("off")
-plt.imshow(np.transpose(vutils.make_grid(generated_img2, nrow=10, padding=2, normalize=True), (1,2,0)))
-plt.show()
+k = 0
+for a in range(10):
+    for b in range(10):
+        k += 1
 
-with torch.no_grad():
-    generated_img3 = netG(noise3).detach().cpu()
-# Display the generated image.
-plt.axis("off")
-plt.imshow(np.transpose(vutils.make_grid(generated_img3, nrow=10, padding=2, normalize=True), (1,2,0)))
-plt.show()
+        c = mix(idx, a+1, b+1)
+        noise = torch.cat((z, c), dim=1)
 
-with torch.no_grad():
-    generated_img4 = netG(noise4).detach().cpu()
-# Display the generated image.
-plt.axis("off")
-plt.imshow(np.transpose(vutils.make_grid(generated_img4, nrow=10, padding=2, normalize=True), (1,2,0)))
-plt.show()
+        with torch.no_grad():
+            generated_img1 = netG(noise).detach().cpu()
+        # Display the generated image.
+        plt.axis("off")
+        plt.imshow(np.transpose(vutils.make_grid(generated_img1, nrow=10, padding=2, normalize=True), (1,2,0)))
+        plt.savefig('celebatests/{}'.format(k))
+        print('Saved_{}'.format(k))
