@@ -3,6 +3,9 @@ import torch.nn as nn
 import numpy as np
 
 def weights_init(m):
+    """
+    Initialise weights of the model.
+    """
     if(type(m) == nn.ConvTranspose2d or type(m) == nn.Conv2d):
         nn.init.normal_(m.weight.data, 0.0, 0.02)
     elif(type(m) == nn.BatchNorm2d):
@@ -25,6 +28,18 @@ class NormalNLLLoss:
         return nll
 
 def noise_sample(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
+    """
+    Sample random noise vector for training.
+
+    INPUT
+    --------
+    n_dis_c : Number of discrete latent code.
+    dis_c_dim : Dimension of discrete latent code.
+    n_con_c : Number of continuous latent code.
+    n_z : Dimension of iicompressible noise.
+    batch_size : Batch Size
+    device : GPU/CPU
+    """
 
     z = torch.randn(batch_size, n_z, 1, 1, device=device)
 
@@ -39,6 +54,7 @@ def noise_sample(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
         dis_c = dis_c.view(batch_size, -1, 1, 1)
 
     if(n_con_c != 0):
+        # Random uniform between -1 and 1.
         con_c = torch.rand(batch_size, n_con_c, 1, 1, device=device) * 2 - 1
 
     noise = z

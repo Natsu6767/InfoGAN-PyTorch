@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+"""
+Architecture based on InfoGAN paper.
+"""
+
 class Generator(nn.Module):
     def __init__(self):
         super().__init__()

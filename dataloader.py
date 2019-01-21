@@ -7,6 +7,7 @@ root = 'data/'
 
 def get_data(dataset, batch_size):
 
+    # Get MNIST dataset.
     if dataset == 'MNIST':
         transform = transforms.Compose([
             transforms.Resize(28),
@@ -16,6 +17,7 @@ def get_data(dataset, batch_size):
         dataset = dsets.MNIST(root+'mnist/', train='train', 
                                 download=True, transform=transform)
 
+    # Get SVHN dataset.
     elif dataset == 'SVHN':
         transform = transforms.Compose([
             transforms.Resize(32),
@@ -25,6 +27,7 @@ def get_data(dataset, batch_size):
         dataset = dsets.SVHN(root+'svhn/', split='train', 
                                 download=True, transform=transform)
 
+    # Get FashionMNIST dataset.
     elif dataset == 'FashionMNIST':
         transform = transforms.Compose([
             transforms.Resize(28),
@@ -34,6 +37,8 @@ def get_data(dataset, batch_size):
         dataset = dsets.FashionMNIST(root+'fashionmnist/', train='train', 
                                 download=True, transform=transform)
 
+    # Get CelebA dataset.
+    # MUST ALREADY BE DOWNLOADED IN THE APPROPRIATE DIRECTOR DEFINED BY ROOT PATH!
     elif dataset == 'CelebA':
         transform = transforms.Compose([
             transforms.Resize(32),
@@ -44,6 +49,7 @@ def get_data(dataset, batch_size):
 
         dataset = dsets.ImageFolder(root=root+'celeba/', transform=transform)
 
+    # Create dataloader.
     dataloader = torch.utils.data.DataLoader(dataset, 
                                             batch_size=batch_size, 
                                             shuffle=True)
