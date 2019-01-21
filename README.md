@@ -27,7 +27,7 @@ The following shows basic folder structure.
 
 ## Development Environment
 * Ubuntu 16.04 LTS
-* NVIDIA GTX 1060
+* NVIDIA GeForce GTX 1060
 * cuda 9.0
 * Python 3.6.5
 * PyTorch 1.0.0
