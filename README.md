@@ -36,7 +36,7 @@ The following shows basic folder structure.
 * matplotlib 2.2.2
 
 ## Usage
-Edit the **`config.py`** file to select training parameters and the dataset to use. Chose *`dataset`* from **['MNIST', 'FashionMNIST', 'SVHN', 'CelebA']**
+Edit the **`config.py`** file to select training parameters and the dataset to use. Choose *`dataset`* from **['MNIST', 'FashionMNIST', 'SVHN', 'CelebA']**
 
 To train the model run **`train.py`**:
 ```sh
