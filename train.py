@@ -115,8 +115,8 @@ if(params['num_con_c'] != 0):
     con_c = torch.rand(100, params['num_con_c'], 1, 1, device=device) * 2 - 1
     fixed_noise = torch.cat((fixed_noise, con_c), dim=1)
 
-real_label = 1
-fake_label = 0
+real_label = 1.
+fake_label = 0.
 
 # List variables to store results pf training.
 img_list = []
